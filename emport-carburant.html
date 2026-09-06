@@ -37,7 +37,8 @@
   input,select{width:100%;padding:6px 8px;border:1.5px solid var(--input-border);
        border-radius:6px;background:var(--input-bg);color:var(--ink);font:inherit}
   input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
-  .ro{font-weight:700;padding:7px 2px}
+  /* même boîte qu'un input (padding + bordure transparente) pour aligner avec le menu Avion */
+  .ro{font-weight:700;padding:6px 0;border:1.5px solid transparent}
   input.invalid{border-color:var(--bad-ink);background:var(--bad-bg);color:var(--bad-ink)}
   .row{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap}
   .row>div{flex:1;min-width:90px;max-width:220px}
