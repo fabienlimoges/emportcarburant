@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emport Carburant PPL</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --card:#ffffff; --ink:#1a2733; --muted:#5b6b7a;
+    --accent:#1d5fbf; --accent-ink:#ffffff; --line:#d7dee5;
+    --ok-bg:#e2f3e6; --ok-ink:#176433; --bad-bg:#fbe3e4; --bad-ink:#9c1c23;
+    --input-bg:#ffffff; --input-border:#aebbc7; --result-bg:#e8f0fb;
+    --seg-taxi:#93a1af; --seg-vol:#1d5fbf; --seg-integ:#e8a13c;
+    --seg-div:#8e6fd8; --seg-res:#1f9e93; --seg-marge:#d05c8c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#141a21; --card:#1e2630; --ink:#e8eef4; --muted:#9fb0c0;
+      --accent:#5b96e8; --accent-ink:#0d1117; --line:#33404d;
+      --ok-bg:#173722; --ok-ink:#7fd99a; --bad-bg:#3d1a1d; --bad-ink:#f1969b;
+      --input-bg:#161d26; --input-border:#51606f; --result-bg:#20304a;
+      --seg-taxi:#6b7885; --seg-vol:#4c86d8; --seg-integ:#c98a2e;
+      --seg-div:#7e63c4; --seg-res:#1d8b81; --seg-marge:#b74f79;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:14px/1.45 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:16px}
+  h1{font-size:20px;margin:0 0 2px}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:12px}
+  .wrap{max-width:1100px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;
+           color:var(--muted);margin:0 0 10px}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+  input,select{width:100%;padding:6px 8px;border:1.5px solid var(--input-border);
+       border-radius:6px;background:var(--input-bg);color:var(--ink);font:inherit}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  input[readonly]{background:transparent;border:none;padding-left:2px;font-weight:700}
+  .row{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:90px;max-width:220px}
+  /* tuile de saisie assortie aux indicateurs */
+  .kpi.edit{background:var(--input-bg);border:2px solid var(--input-border)}
+  .kpi.edit input{background:transparent;border:none;padding:0;width:100%;
+       font-size:22px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+  .kpi.edit input:focus{outline:none}
+  .kpi.edit:focus-within{outline:2px solid var(--accent);outline-offset:-1px}
+  .num{font-variant-numeric:tabular-nums}
+  /* ---- tabs ---- */
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tabs button{padding:8px 16px;border:1px solid var(--line);border-radius:8px;
+       background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+  .tabs button.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  /* ---- leg cards ---- */
+  .leg{margin-top:14px}
+  .leg-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .leg-head .n{display:inline-flex;align-items:center;justify-content:center;
+       width:26px;height:26px;border-radius:50%;background:var(--accent);
+       color:var(--accent-ink);font-weight:700}
+  .leg-head .route{font-weight:700;font-size:15px}
+  .leg-head .tot{margin-left:auto;font-weight:700;font-size:15px;
+       background:var(--result-bg);padding:4px 12px;border-radius:7px}
+  .bar{display:flex;height:34px;border-radius:7px;overflow:hidden;margin:10px 0 6px}
+  .bar .seg{display:flex;align-items:center;justify-content:center;color:#fff;
+       font-size:11px;font-weight:700;min-width:0;overflow:hidden;white-space:nowrap;
+       text-shadow:0 1px 2px rgba(0,0,0,.35)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+  .legend .dot{display:inline-block;width:10px;height:10px;border-radius:3px;
+       margin-right:4px;vertical-align:-1px}
+  .fuel-line{margin-top:6px;font-size:13px}
+  .fuel-line b{font-size:14px}
+  .supp{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
+  .supp h3{font-size:12px;text-transform:uppercase;letter-spacing:.05em;
+       color:var(--seg-div);margin:0 0 8px}
+  /* ---- KPIs / verdict ---- */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:12px}
+  .kpi{background:var(--result-bg);border-radius:8px;padding:10px 12px}
+  .kpi .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+  .kpi .l{font-size:11px;color:var(--muted)}
+  .kpi.big{grid-column:1/-1;background:var(--accent);color:var(--accent-ink)}
+  .kpi.big .l{color:var(--accent-ink);opacity:.85}
+  .kpi.critical{background:var(--bad-bg);border:2px solid var(--bad-ink)}
+  .kpi.critical .v,.kpi.critical .l{color:var(--bad-ink)}
+  .verdict{margin-top:10px;padding:10px 12px;border-radius:8px;font-weight:700;text-align:center}
+  .verdict.ok{background:var(--ok-bg);color:var(--ok-ink)}
+  .verdict.bad{background:var(--bad-bg);color:var(--bad-ink)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  td input{padding:4px 6px;text-align:right;min-width:64px}
+  td input.txt{text-align:left}
+  .breakdown td:first-child{color:var(--muted)}
+  button{padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);
+         color:var(--ink);font:inherit;cursor:pointer}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  button:hover{filter:brightness(1.06)}
+  .del{padding:2px 8px;color:var(--bad-ink)}
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .hint{font-size:11px;color:var(--muted);margin-top:8px}
+  [hidden]{display:none!important}
+  /* ---- dialogue de confirmation ---- */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;
+       align-items:center;justify-content:center;z-index:50}
+  .dialog{background:var(--card);border:1px solid var(--line);border-radius:10px;
+       padding:18px;max-width:360px;width:90%;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .dialog p{margin:0 0 14px;white-space:pre-line}
+  .dialog .actions{margin-top:0;justify-content:flex-end}
+  @media print{
+    body{background:#fff;color:#000;padding:0}
+    .card{border-color:#bbb;break-inside:avoid}
+    .no-print,.tabs{display:none!important}
+    input,select{background:#fff;border-color:#bbb}
+    .kpi{border:1px solid #bbb}
+    .kpi.big{background:#eee;color:#000}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>✈️ Emport carburant — Navigation 3 étapes (exercice PPL)</h1>
+  <div class="sub">Objectif : garantir l'emport réglementaire au départ de la 3ᵉ étape.
+    Champs encadrés = à remplir · le reste se calcule automatiquement.</div>
+
+  <div class="tabs no-print">
+    <button id="resetBtn" style="margin-left:auto">↺ Réinitialiser le vol</button>
+  </div>
+
+  <!-- ================= VUE CALCUL ================= -->
+  <div id="view-vol">
+    <div class="card">
+      <h2>Avion &amp; paramètres généraux</h2>
+      <div class="row">
+        <div>
+          <label for="plane">Avion</label>
+          <select id="plane"></select>
+        </div>
+        <div>
+          <label>Conso horaire (L/h)</label>
+          <input id="conso" type="number" readonly>
+        </div>
+        <div>
+          <label>Inutilisable (L)</label>
+          <input id="inut" type="number" readonly>
+        </div>
+        <div>
+          <label>Capacité réservoirs (L)</label>
+          <input id="capa" type="number" readonly>
+        </div>
+      </div>
+      <div class="hint">Forfaits fixes : roulage 5 min et intégration terrain d'arrivée 10 min, par étape.</div>
+    </div>
+
+    <!-- Étape 1 -->
+    <div class="card leg" data-leg="0">
+      <div class="leg-head"><span class="n">1</span><span class="route"></span>
+        <span class="tot num"></span></div>
+      <div class="row">
+        <div><label>De</label><input class="txt leg-de" value="LFXU"></div>
+        <div><label>Vers</label><input class="txt leg-to" value="LFFU"></div>
+        <div><label>Distance (NM)</label><input type="number" class="leg-dist" value="55" min="0"></div>
+        <div><label>Vitesse sol (kt)</label><input type="number" class="leg-gs" value="95" min="1"></div>
+        <div><label>Aléas (%)</label><input type="number" class="leg-aleas" value="10" min="0"></div>
+      </div>
+      <div class="bar"></div>
+      <div class="legend"></div>
+      <div class="fuel-line"></div>
+    </div>
+
+    <!-- Étape 2 -->
+    <div class="card leg" data-leg="1">
+      <div class="leg-head"><span class="n">2</span><span class="route"></span>
+        <span class="tot num"></span></div>
+      <div class="row">
+        <div><label>De</label><input class="txt leg-de" value="LFFU"></div>
+        <div><label>Vers</label><input class="txt leg-to" value="LFEH"></div>
+        <div><label>Distance (NM)</label><input type="number" class="leg-dist" value="48" min="0"></div>
+        <div><label>Vitesse sol (kt)</label><input type="number" class="leg-gs" value="100" min="1"></div>
+        <div><label>Aléas (%)</label><input type="number" class="leg-aleas" value="10" min="0"></div>
+      </div>
+      <div class="bar"></div>
+      <div class="legend"></div>
+      <div class="fuel-line"></div>
+    </div>
+
+    <!-- Étape 3 -->
+    <div class="card leg" data-leg="2">
+      <div class="leg-head"><span class="n">3</span><span class="route"></span>
+        <span class="tot num"></span></div>
+      <div class="row">
+        <div><label>De</label><input class="txt leg-de" value="LFEH"></div>
+        <div><label>Vers</label><input class="txt leg-to" value="LFXU"></div>
+        <div><label>Distance (NM)</label><input type="number" class="leg-dist" value="62" min="0"></div>
+        <div><label>Vitesse sol (kt)</label><input type="number" class="leg-gs" value="90" min="1"></div>
+        <div><label>Aléas (%)</label><input type="number" class="leg-aleas" value="10" min="0"></div>
+      </div>
+      <div class="bar"></div>
+      <div class="legend"></div>
+      <div class="fuel-line"></div>
+
+      <div class="supp">
+        <h3>Plan de diversion</h3>
+        <div class="row">
+          <div><label for="divTo">Terrain de dégagement</label>
+            <input id="divTo" type="text" value="LFOR" class="txt"></div>
+          <div><label for="divDist">Distance diversion (NM)</label>
+            <input id="divDist" type="number" value="25" min="0"></div>
+          <div><label for="divGs">Vitesse sol diversion (kt)</label>
+            <input id="divGs" type="number" value="90" min="1"></div>
+        </div>
+      </div>
+
+      <div class="supp">
+        <h3 style="color:var(--seg-marge)">Marge de sécurité</h3>
+        <div class="row">
+          <div><label for="marge">Marge CDB (min)</label>
+            <input id="marge" type="number" value="15" min="0" step="5"></div>
+        </div>
+      </div>
+
+      <div class="supp">
+        <h3 style="color:var(--seg-res)">Réserve finale réglementaire</h3>
+        <div class="row">
+          <div><label for="daynight">Jour / Nuit</label>
+            <select id="daynight">
+              <option value="30">Jour (réserve finale 30 min)</option>
+              <option value="45">Nuit (réserve finale 45 min)</option>
+            </select></div>
+        </div>
+      </div>
+
+      <div class="supp">
+        <div class="leg-head" style="margin-bottom:4px">
+          <span style="font-weight:700">Total suppléments étape 3</span>
+          <span class="tot num" id="suppTot"></span>
+        </div>
+        <div class="bar" id="suppBar"></div>
+        <div class="legend" id="suppLegend"></div>
+      </div>
+
+      <div class="supp">
+        <h3 style="color:var(--muted)">Quantité inutilisable</h3>
+        <div class="fuel-line" id="inutLine"></div>
+        <div class="fuel-line" id="suppFuel"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+        <h2>Bilan emport réglementaire au parking</h2>
+        <table class="breakdown">
+          <tbody>
+            <tr><td>Étape 1 (roulage + vol + intégration + aléas)</td><td class="num" id="bkLeg0"></td></tr>
+            <tr><td>Étape 2 (roulage + vol + intégration + aléas)</td><td class="num" id="bkLeg1"></td></tr>
+            <tr><td>Étape 3 (roulage + vol + intégration + aléas)</td><td class="num" id="bkLeg2"></td></tr>
+            <tr><td>Diversion vers <span id="bkDivName">–</span></td><td class="num" id="bkDiv"></td></tr>
+            <tr><td>Réserve finale réglementaire (<span id="bkResMin"></span>)</td><td class="num" id="bkRes"></td></tr>
+            <tr><td>Marge de sécurité CDB (<span id="bkMargeMin"></span>)</td><td class="num" id="bkMarge"></td></tr>
+            <tr><td>Quantité inutilisable (manuel de vol)</td><td class="num" id="bkInut"></td></tr>
+          </tbody>
+        </table>
+        <div class="kpis">
+          <div class="kpi big"><div class="v num" id="totalReq">–</div>
+            <div class="l">EMPORT RÉGLEMENTAIRE AU PARKING (arrondi au litre supérieur)</div></div>
+          <div class="kpi critical" style="grid-column:1/-1">
+            <div class="v num" id="minLeg3">–</div>
+            <div class="l">⚠️ MINI RÉGLEMENTAIRE à bord au départ de l'étape 3 (étape 3 + suppléments)</div></div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+        <h2>Indicateurs pilote</h2>
+        <div class="kpis">
+          <div class="kpi edit">
+            <input id="fob" type="number" value="110" min="0" step="1">
+            <div class="l">Quantité réelle mise dans l'avion (L) — à saisir</div>
+          </div>
+          <div class="kpi"><div class="v num" id="usable">–</div>
+            <div class="l">Carburant utilisable en vol<br>(réel à bord − inutilisable)</div></div>
+          <div class="kpi"><div class="v num" id="endurance">–</div>
+            <div class="l">Autonomie correspondante</div></div>
+          <div class="kpi"><div class="v num" id="maxFlight">–</div>
+            <div class="l">Durée max du vol<br>(autonomie − réserve finale)</div></div>
+        </div>
+        <div class="verdict" id="verdict"></div>
+        <div class="hint">Durée max du vol = autonomie − réserve finale réglementaire (30 min jour / 45 min nuit).</div>
+        <div class="actions no-print">
+          <button class="primary" onclick="window.print()">🖨️ Imprimer le bilan</button>
+        </div>
+    </div>
+
+    <div class="sub" style="margin-top:12px">
+      Hypothèses : roulage 5 min et intégration 10 min forfaitaires par étape · aléas en % de la conso,
+      réglables étape par étape · diversion, réserve finale (30 min jour / 45 min nuit) et marge CDB
+      comptées une seule fois, au titre de l'étape 3 · diversion sans aléas.
+      Outil d'aide à la préparation — le commandant de bord reste responsable du bilan carburant.
+    </div>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* forfaits fixes (min / étape) */
+const TAXI_MIN = 5;
+const INTEG_MIN = 10;
+
+/* Dialogue intégré (confirm() natif peut être bloqué selon le navigateur) */
+function askConfirm(message, okLabel, infoOnly){
+  return new Promise(resolve => {
+    const ov = document.createElement("div");
+    ov.className = "overlay";
+    ov.innerHTML = `<div class="dialog"><p></p><div class="actions">` +
+      (infoOnly ? "" : `<button class="c-cancel">Annuler</button>`) +
+      `<button class="primary c-ok"></button></div></div>`;
+    ov.querySelector("p").textContent = message;
+    ov.querySelector(".c-ok").textContent = okLabel || "Confirmer";
+    ov.querySelector(".c-ok").onclick = () => { ov.remove(); resolve(true); };
+    const cancel = ov.querySelector(".c-cancel");
+    if (cancel) cancel.onclick = () => { ov.remove(); resolve(false); };
+    ov.onclick = e => { if (e.target === ov && !infoOnly) { ov.remove(); resolve(false); } };
+    document.body.appendChild(ov);
+  });
+}
+
+/* =====================================================================
+   ⚙️  FLOTTE DU CLUB — À MODIFIER ICI
+   Un avion par ligne : immatriculation, consommation horaire (L/h),
+   carburant inutilisable (L) et capacité totale des réservoirs (L),
+   valeurs issues du MANUEL DE VOL de chacun.
+   ===================================================================== */
+const FLEET = [
+  {immat:"F-GGXD", conso:25, inut:4, capa:110},
+  {immat:"F-HAAC", conso:25, inut:4, capa:110},
+  {immat:"F-HFNG", conso:25, inut:4, capa:110},
+  {immat:"F-BUPS", conso:25, inut:4, capa:110},
+  {immat:"F-BXEQ", conso:25, inut:4, capa:110},
+];
+/* ===================================================================== */
+
+const fleet = FLEET;
+function plane(){ return fleet.find(p => p.immat === $("plane").value) || fleet[0]; }
+
+/* ---------------- helpers ---------------- */
+const num = id => parseFloat($(id).value) || 0;
+const L = v => v.toFixed(1).replace(".", ",") + " L";
+const minTxt = m => Math.round(m) + " min";
+function hmm(h){
+  if (!isFinite(h) || h < 0) return "0 h 00";
+  const m = Math.round(h * 60);
+  return Math.floor(m/60) + " h " + String(m%60).padStart(2,"0");
+}
+function segColor(name){
+  return getComputedStyle(document.documentElement).getPropertyValue("--seg-" + name).trim();
+}
+function drawBar(barEl, legendEl, segs){
+  const total = segs.reduce((s,x) => s + x.min, 0);
+  barEl.innerHTML = ""; legendEl.innerHTML = "";
+  segs.forEach(s => {
+    if (s.min <= 0) return;
+    const d = document.createElement("div");
+    d.className = "seg";
+    d.style.flex = String(s.min);
+    d.style.background = segColor(s.key);
+    if (total > 0 && s.min/total > 0.05) d.textContent = Math.round(s.min) + "′";
+    d.title = s.label + " : " + minTxt(s.min) + (s.fuel != null ? " · " + L(s.fuel) : "");
+    barEl.appendChild(d);
+    const li = document.createElement("span");
+    li.innerHTML = `<span class="dot" style="background:${segColor(s.key)}"></span>` +
+                   `${s.label} <b class="num">${minTxt(s.min)}</b>` +
+                   (s.fuel != null ? ` · <span class="num">${L(s.fuel)}</span>` : "");
+    legendEl.appendChild(li);
+  });
+}
+
+/* ---------------- calcul ---------------- */
+function compute(){
+  const p = plane();
+  if (!p) return;
+  $("conso").value = p.conso;
+  $("inut").value = p.inut;
+  $("capa").value = p.capa;
+  const conso = p.conso;
+  const taxi = TAXI_MIN, integ = INTEG_MIN;
+  const fuelOf = min => min/60*conso;
+
+  const legTotals = [];
+  document.querySelectorAll(".leg").forEach(card => {
+    const i = +card.dataset.leg;
+    const de = card.querySelector(".leg-de").value || "?";
+    const to = card.querySelector(".leg-to").value || "?";
+    const dist = parseFloat(card.querySelector(".leg-dist").value) || 0;
+    const gs = parseFloat(card.querySelector(".leg-gs").value) || 0;
+    const aleasPct = (parseFloat(card.querySelector(".leg-aleas").value) || 0)/100;
+
+    const tVol = gs > 0 ? dist/gs*60 : 0;
+    const tTot = taxi + tVol + integ;
+    const fBase = fuelOf(tTot);
+    const fAleas = fBase * aleasPct;
+    const fTot = fBase + fAleas;
+    legTotals[i] = fTot;
+
+    card.querySelector(".route").textContent = de + " → " + to;
+    card.querySelector(".leg-head .tot").textContent = minTxt(tTot) + " · " + L(fTot);
+    drawBar(card.querySelector(".bar"), card.querySelector(".legend"), [
+      {key:"taxi",  label:"Roulage",     min:taxi,  fuel:fuelOf(taxi)},
+      {key:"vol",   label:"Vol",         min:tVol,  fuel:fuelOf(tVol)},
+      {key:"integ", label:"Intégration", min:integ, fuel:fuelOf(integ)},
+    ]);
+    card.querySelector(".fuel-line").innerHTML =
+      `Conso <span class="num">${L(fBase)}</span> + aléas ${(aleasPct*100).toFixed(0)} % ` +
+      `<span class="num">(${L(fAleas)})</span> = <b class="num">${L(fTot)}</b>`;
+  });
+
+  /* suppléments étape 3 */
+  const divGs = num("divGs");
+  const divMin = divGs > 0 ? num("divDist")/divGs*60 : 0;
+  const divFuel = fuelOf(divMin);
+  const resMin = parseFloat($("daynight").value);
+  const resFuel = fuelOf(resMin);
+  const margeMin = num("marge");
+  const margeFuel = fuelOf(margeMin);
+  const inut = p.inut;
+
+  drawBar($("suppBar"), $("suppLegend"), [
+    {key:"div",   label:"Diversion " + ($("divTo").value || "?"), min:divMin,   fuel:divFuel},
+    {key:"res",   label:"Réserve finale",                          min:resMin,   fuel:resFuel},
+    {key:"marge", label:"Marge CDB",                               min:margeMin, fuel:margeFuel},
+  ]);
+  $("suppTot").textContent = minTxt(divMin + resMin + margeMin) + " · " +
+                             L(divFuel + resFuel + margeFuel);
+  $("inutLine").innerHTML =
+    `Carburant inutilisable du réservoir (manuel de vol, ${p.immat}) : <b class="num">${L(inut)}</b>`;
+  $("suppFuel").innerHTML =
+    `Total suppléments étape 3 : <span class="num">${L(divFuel + resFuel + margeFuel)}</span>` +
+    ` + inutilisable <span class="num">${L(inut)}</span> = ` +
+    `<b class="num">${L(divFuel + resFuel + margeFuel + inut)}</b>`;
+
+  /* bilan */
+  const sumLegs = legTotals.reduce((s,x) => s + (x || 0), 0);
+  const total = sumLegs + divFuel + resFuel + margeFuel + inut;
+  const totalUp = Math.ceil(total);
+
+  legTotals.forEach((f,i) => { $("bkLeg" + i).textContent = L(f); });
+  $("bkDivName").textContent = $("divTo").value || "–";
+  $("bkDiv").textContent = L(divFuel);
+  $("bkResMin").textContent = resMin + " min";
+  $("bkRes").textContent = L(resFuel);
+  $("bkMargeMin").textContent = margeMin + " min";
+  $("bkMarge").textContent = L(margeFuel);
+  $("bkInut").textContent = L(inut);
+  $("totalReq").textContent = totalUp + " L";
+
+  /* indicateurs */
+  const fob = num("fob");
+  const usable = Math.max(fob - inut, 0);
+  $("usable").textContent = L(usable);
+  $("endurance").textContent = conso > 0 ? hmm(usable/conso) : "–";
+  $("maxFlight").textContent = conso > 0 ? hmm(Math.max(usable - resFuel, 0)/conso) : "–";
+  $("minLeg3").textContent = L((legTotals[2] || 0) + divFuel + resFuel + margeFuel + inut);
+
+  const v = $("verdict");
+  if (fob > p.capa) {
+    v.className = "verdict bad";
+    v.textContent = "⛔ Quantité saisie (" + fob.toFixed(0) + " L) supérieure à la capacité des " +
+                    "réservoirs du " + p.immat + " (" + p.capa + " L)";
+  } else if (total > p.capa) {
+    v.className = "verdict bad";
+    v.textContent = "⛔ Emport requis (" + totalUp + " L) supérieur à la capacité des réservoirs (" +
+                    p.capa + " L) — vol impossible en l'état, réduire les étapes ou prévoir une escale";
+  } else if (fob >= total) {
+    v.className = "verdict ok";
+    v.textContent = "✅ OK — emport suffisant (" + fob.toFixed(0) + " L à bord ≥ " + totalUp + " L requis)";
+  } else {
+    v.className = "verdict bad";
+    v.textContent = "⛔ INSUFFISANT — compléter l'avitaillement (manque " +
+                    Math.ceil(total - fob) + " L)";
+  }
+}
+
+/* ---------------- événements ---------------- */
+document.addEventListener("input", compute);
+$("plane").addEventListener("change", compute);
+$("resetBtn").addEventListener("click", async () => {
+  if (!await askConfirm("Réinitialiser le vol ?\nToutes les étapes et le plan de diversion seront " +
+                        "effacés (la flotte est conservée).", "Réinitialiser")) return;
+  document.querySelectorAll(".leg-de,.leg-to").forEach(i => i.value = "");
+  document.querySelectorAll(".leg-dist,.leg-gs").forEach(i => i.value = "");
+  document.querySelectorAll(".leg-aleas").forEach(i => i.value = "10");
+  $("divTo").value = ""; $("divDist").value = ""; $("divGs").value = "";
+  compute();
+});
+
+$("plane").innerHTML = fleet.map(p => `<option>${p.immat}</option>`).join("");
+compute();
+</script>
+</body>
+</html>
