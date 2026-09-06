@@ -4,11 +4,16 @@ Outil d'aide à la préparation du bilan carburant pour la navigation en 3 étap
 de l'exercice PPL. L'objectif est de garantir l'emport réglementaire au départ
 de la troisième étape.
 
+**➡️ Application en ligne : https://fabienlimoges.github.io/emportcarburant/**
+
+Sur iPad / iPhone : ouvrir l'URL dans Safari → Partager → « Sur l'écran
+d'accueil » pour l'installer comme une app.
+
 ## Utilisation
 
-Ouvrir `emport-carburant.html` dans un navigateur (double-clic). Aucune
-installation ni serveur nécessaire — le fichier peut être copié tel quel sur
-chaque poste de l'aéroclub.
+Ouvrir l'URL ci-dessus, ou `emport-carburant.html` dans un navigateur
+(double-clic). Aucune installation ni serveur nécessaire — le fichier peut
+aussi être copié tel quel sur chaque poste de l'aéroclub.
 
 - Champs encadrés = à remplir, le reste se calcule automatiquement.
 - Forfaits fixes : roulage 5 min et intégration terrain d'arrivée 10 min par étape.
