@@ -38,6 +38,7 @@
        border-radius:6px;background:var(--input-bg);color:var(--ink);font:inherit}
   input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
   input[readonly]{background:transparent;border:none;padding-left:2px;font-weight:700}
+  input.invalid{border-color:var(--bad-ink);background:var(--bad-bg);color:var(--bad-ink)}
   .row{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap}
   .row>div{flex:1;min-width:90px;max-width:220px}
   /* tuile de saisie assortie aux indicateurs */
@@ -307,6 +308,16 @@ const $ = id => document.getElementById(id);
 /* forfaits fixes (min / étape) */
 const TAXI_MIN = 5;
 const INTEG_MIN = 10;
+/* vitesse sol minimale acceptée (kt) */
+const GS_MIN = 69;
+
+/* marque un champ vitesse sol invalide sous GS_MIN (champ vide non flaggé) */
+function checkGs(input){
+  const bad = input.value !== "" && (parseFloat(input.value) || 0) < GS_MIN;
+  input.classList.toggle("invalid", bad);
+  input.title = bad ? "Vitesse sol invalide : minimum " + GS_MIN + " kt" : "";
+  return !bad;
+}
 
 /* Dialogue intégré (confirm() natif peut être bloqué selon le navigateur) */
 function askConfirm(message, okLabel, infoOnly){
@@ -394,6 +405,7 @@ function compute(){
     const to = card.querySelector(".leg-to").value || "?";
     const dist = parseFloat(card.querySelector(".leg-dist").value) || 0;
     const gs = parseFloat(card.querySelector(".leg-gs").value) || 0;
+    checkGs(card.querySelector(".leg-gs"));
     const aleasPct = (parseFloat(card.querySelector(".leg-aleas").value) || 0)/100;
 
     const tVol = gs > 0 ? dist/gs*60 : 0;
@@ -416,6 +428,7 @@ function compute(){
   });
 
   /* suppléments étape 3 */
+  checkGs($("divGs"));
   const divGs = num("divGs");
   const divMin = divGs > 0 ? num("divDist")/divGs*60 : 0;
   const divFuel = fuelOf(divMin);
