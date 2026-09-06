@@ -37,7 +37,7 @@
   input,select{width:100%;padding:6px 8px;border:1.5px solid var(--input-border);
        border-radius:6px;background:var(--input-bg);color:var(--ink);font:inherit}
   input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
-  input[readonly]{background:transparent;border:none;padding-left:2px;font-weight:700}
+  .ro{font-weight:700;padding:7px 2px}
   input.invalid{border-color:var(--bad-ink);background:var(--bad-bg);color:var(--bad-ink)}
   .row{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap}
   .row>div{flex:1;min-width:90px;max-width:220px}
@@ -143,15 +143,15 @@
         </div>
         <div>
           <label>Conso horaire (L/h)</label>
-          <input id="conso" type="number" readonly>
+          <div class="ro num" id="conso"></div>
         </div>
         <div>
           <label>Inutilisable (L)</label>
-          <input id="inut" type="number" readonly>
+          <div class="ro num" id="inut"></div>
         </div>
         <div>
           <label>Capacité réservoirs (L)</label>
-          <input id="capa" type="number" readonly>
+          <div class="ro num" id="capa"></div>
         </div>
       </div>
       <div class="hint">Forfaits fixes : roulage 5 min et intégration terrain d'arrivée 10 min, par étape.</div>
@@ -394,9 +394,9 @@ function drawBar(barEl, legendEl, segs){
 function compute(){
   const p = plane();
   if (!p) return;
-  $("conso").value = p.conso;
-  $("inut").value = p.inut;
-  $("capa").value = p.capa;
+  $("conso").textContent = p.conso;
+  $("inut").textContent = p.inut;
+  $("capa").textContent = p.capa;
   const conso = p.conso;
   const taxi = TAXI_MIN, integ = INTEG_MIN;
   const fuelOf = min => min/60*conso;
