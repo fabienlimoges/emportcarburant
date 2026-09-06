@@ -116,6 +116,9 @@
     input,select{background:#fff;border-color:#bbb}
     .kpi{border:1px solid #bbb}
     .kpi.big{background:#eee;color:#000}
+    /* n'imprimer que le bilan et les indicateurs pilote (+ le titre) */
+    #view-vol > :not(.print-keep){display:none!important}
+    .print-keep{margin-top:0!important;margin-bottom:10px}
   }
 </style>
 </head>
@@ -248,7 +251,7 @@
       </div>
     </div>
 
-    <div class="card" style="margin-top:14px">
+    <div class="card print-keep" style="margin-top:14px">
         <h2>Bilan emport réglementaire au parking</h2>
         <table class="breakdown">
           <tbody>
@@ -270,7 +273,7 @@
         </div>
     </div>
 
-    <div class="card" style="margin-top:14px">
+    <div class="card print-keep" style="margin-top:14px">
         <h2>Indicateurs pilote</h2>
         <div class="kpis">
           <div class="kpi edit">
