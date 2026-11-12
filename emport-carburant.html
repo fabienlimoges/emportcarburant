@@ -163,8 +163,8 @@
       <div class="leg-head"><span class="n">1</span><span class="route"></span>
         <span class="tot num"></span></div>
       <div class="row">
-        <div><label>De</label><input class="txt leg-de" value="LF"></div>
-        <div><label>Vers</label><input class="txt leg-to" value="LF"></div>
+        <div><label>De</label><input class="txt leg-de" value="LF" autocapitalize="characters"></div>
+        <div><label>Vers</label><input class="txt leg-to" value="LF" autocapitalize="characters"></div>
         <div><label>Distance (NM)</label><input type="number" class="leg-dist" value="55" min="0"></div>
         <div><label>Vitesse sol (kt)</label><input type="number" class="leg-gs" value="95" min="1"></div>
         <div><label>Aléas (%)</label><input type="number" class="leg-aleas" value="10" min="0"></div>
@@ -179,8 +179,8 @@
       <div class="leg-head"><span class="n">2</span><span class="route"></span>
         <span class="tot num"></span></div>
       <div class="row">
-        <div><label>De</label><input class="txt leg-de" value="LF"></div>
-        <div><label>Vers</label><input class="txt leg-to" value="LF"></div>
+        <div><label>De</label><input class="txt leg-de" value="LF" autocapitalize="characters"></div>
+        <div><label>Vers</label><input class="txt leg-to" value="LF" autocapitalize="characters"></div>
         <div><label>Distance (NM)</label><input type="number" class="leg-dist" value="48" min="0"></div>
         <div><label>Vitesse sol (kt)</label><input type="number" class="leg-gs" value="100" min="1"></div>
         <div><label>Aléas (%)</label><input type="number" class="leg-aleas" value="10" min="0"></div>
@@ -195,8 +195,8 @@
       <div class="leg-head"><span class="n">3</span><span class="route"></span>
         <span class="tot num"></span></div>
       <div class="row">
-        <div><label>De</label><input class="txt leg-de" value="LF"></div>
-        <div><label>Vers</label><input class="txt leg-to" value="LF"></div>
+        <div><label>De</label><input class="txt leg-de" value="LF" autocapitalize="characters"></div>
+        <div><label>Vers</label><input class="txt leg-to" value="LF" autocapitalize="characters"></div>
         <div><label>Distance (NM)</label><input type="number" class="leg-dist" value="62" min="0"></div>
         <div><label>Vitesse sol (kt)</label><input type="number" class="leg-gs" value="90" min="1"></div>
         <div><label>Aléas (%)</label><input type="number" class="leg-aleas" value="10" min="0"></div>
@@ -209,7 +209,7 @@
         <h3>Plan de diversion</h3>
         <div class="row">
           <div><label for="divTo">Terrain de dégagement</label>
-            <input id="divTo" type="text" value="LF" class="txt"></div>
+            <input id="divTo" type="text" value="LF" class="txt" autocapitalize="characters"></div>
           <div><label for="divDist">Distance diversion (NM)</label>
             <input id="divDist" type="number" value="25" min="0"></div>
           <div><label for="divGs">Vitesse sol diversion (kt)</label>
@@ -401,8 +401,8 @@ function compute(){
   const conso = p.conso;
   const taxi = TAXI_MIN, integ = INTEG_MIN;
   const fuelOf = min => min/60*conso;
-  // An ICAO code shorter than 3 chars is just the pre-filled "LF" prefix: show as unset
-  const icao = (v, empty = "?") => v.length > 2 ? v : empty;
+  // An ICAO code has 4 chars; shorter means still being typed (e.g. the pre-filled "LF" prefix)
+  const icao = (v, empty = "?") => v.length >= 4 ? v : empty;
 
   const legTotals = [];
   document.querySelectorAll(".leg").forEach(card => {
@@ -501,6 +501,10 @@ function compute(){
 }
 
 /* ---------------- événements ---------------- */
+// Aerodrome codes are always uppercase; registered before compute so it sees the fixed value
+document.addEventListener("input", e => {
+  if (e.target.classList.contains("txt")) e.target.value = e.target.value.toUpperCase();
+});
 document.addEventListener("input", compute);
 $("plane").addEventListener("change", compute);
 $("resetBtn").addEventListener("click", async () => {
