@@ -401,8 +401,8 @@ function compute(){
   const conso = p.conso;
   const taxi = TAXI_MIN, integ = INTEG_MIN;
   const fuelOf = min => min/60*conso;
-  // An ICAO code has 4 chars; shorter means still being typed (e.g. the pre-filled "LF" prefix)
-  const icao = (v, empty = "?") => v.length >= 4 ? v : empty;
+  // An ICAO code has exactly 4 chars; anything else is incomplete or a typo
+  const icao = (v, empty = "?") => v.length === 4 ? v : empty;
 
   const legTotals = [];
   document.querySelectorAll(".leg").forEach(card => {
