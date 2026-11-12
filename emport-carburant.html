@@ -163,8 +163,8 @@
       <div class="leg-head"><span class="n">1</span><span class="route"></span>
         <span class="tot num"></span></div>
       <div class="row">
-        <div><label>De</label><input class="txt leg-de" value="LFXU"></div>
-        <div><label>Vers</label><input class="txt leg-to" value="LFFU"></div>
+        <div><label>De</label><input class="txt leg-de" value="LF"></div>
+        <div><label>Vers</label><input class="txt leg-to" value="LF"></div>
         <div><label>Distance (NM)</label><input type="number" class="leg-dist" value="55" min="0"></div>
         <div><label>Vitesse sol (kt)</label><input type="number" class="leg-gs" value="95" min="1"></div>
         <div><label>Aléas (%)</label><input type="number" class="leg-aleas" value="10" min="0"></div>
@@ -179,8 +179,8 @@
       <div class="leg-head"><span class="n">2</span><span class="route"></span>
         <span class="tot num"></span></div>
       <div class="row">
-        <div><label>De</label><input class="txt leg-de" value="LFFU"></div>
-        <div><label>Vers</label><input class="txt leg-to" value="LFEH"></div>
+        <div><label>De</label><input class="txt leg-de" value="LF"></div>
+        <div><label>Vers</label><input class="txt leg-to" value="LF"></div>
         <div><label>Distance (NM)</label><input type="number" class="leg-dist" value="48" min="0"></div>
         <div><label>Vitesse sol (kt)</label><input type="number" class="leg-gs" value="100" min="1"></div>
         <div><label>Aléas (%)</label><input type="number" class="leg-aleas" value="10" min="0"></div>
@@ -195,8 +195,8 @@
       <div class="leg-head"><span class="n">3</span><span class="route"></span>
         <span class="tot num"></span></div>
       <div class="row">
-        <div><label>De</label><input class="txt leg-de" value="LFEH"></div>
-        <div><label>Vers</label><input class="txt leg-to" value="LFXU"></div>
+        <div><label>De</label><input class="txt leg-de" value="LF"></div>
+        <div><label>Vers</label><input class="txt leg-to" value="LF"></div>
         <div><label>Distance (NM)</label><input type="number" class="leg-dist" value="62" min="0"></div>
         <div><label>Vitesse sol (kt)</label><input type="number" class="leg-gs" value="90" min="1"></div>
         <div><label>Aléas (%)</label><input type="number" class="leg-aleas" value="10" min="0"></div>
@@ -209,7 +209,7 @@
         <h3>Plan de diversion</h3>
         <div class="row">
           <div><label for="divTo">Terrain de dégagement</label>
-            <input id="divTo" type="text" value="LFOR" class="txt"></div>
+            <input id="divTo" type="text" value="LF" class="txt"></div>
           <div><label for="divDist">Distance diversion (NM)</label>
             <input id="divDist" type="number" value="25" min="0"></div>
           <div><label for="divGs">Vitesse sol diversion (kt)</label>
@@ -401,12 +401,14 @@ function compute(){
   const conso = p.conso;
   const taxi = TAXI_MIN, integ = INTEG_MIN;
   const fuelOf = min => min/60*conso;
+  // An ICAO code shorter than 3 chars is just the pre-filled "LF" prefix: show as unset
+  const icao = (v, empty = "?") => v.length > 2 ? v : empty;
 
   const legTotals = [];
   document.querySelectorAll(".leg").forEach(card => {
     const i = +card.dataset.leg;
-    const de = card.querySelector(".leg-de").value || "?";
-    const to = card.querySelector(".leg-to").value || "?";
+    const de = icao(card.querySelector(".leg-de").value);
+    const to = icao(card.querySelector(".leg-to").value);
     const dist = parseFloat(card.querySelector(".leg-dist").value) || 0;
     const gs = parseFloat(card.querySelector(".leg-gs").value) || 0;
     checkGs(card.querySelector(".leg-gs"));
@@ -443,7 +445,7 @@ function compute(){
   const inut = p.inut;
 
   drawBar($("suppBar"), $("suppLegend"), [
-    {key:"div",   label:"Diversion " + ($("divTo").value || "?"), min:divMin,   fuel:divFuel},
+    {key:"div",   label:"Diversion " + icao($("divTo").value), min:divMin,   fuel:divFuel},
     {key:"res",   label:"Réserve finale",                          min:resMin,   fuel:resFuel},
     {key:"marge", label:"Marge CDB",                               min:margeMin, fuel:margeFuel},
   ]);
@@ -462,7 +464,7 @@ function compute(){
   const totalUp = Math.ceil(total);
 
   legTotals.forEach((f,i) => { $("bkLeg" + i).textContent = L(f); });
-  $("bkDivName").textContent = $("divTo").value || "–";
+  $("bkDivName").textContent = icao($("divTo").value, "–");
   $("bkDiv").textContent = L(divFuel);
   $("bkResMin").textContent = resMin + " min";
   $("bkRes").textContent = L(resFuel);
@@ -504,10 +506,10 @@ $("plane").addEventListener("change", compute);
 $("resetBtn").addEventListener("click", async () => {
   if (!await askConfirm("Réinitialiser le vol ?\nToutes les étapes et le plan de diversion seront " +
                         "effacés (la flotte est conservée).", "Réinitialiser")) return;
-  document.querySelectorAll(".leg-de,.leg-to").forEach(i => i.value = "");
+  document.querySelectorAll(".leg-de,.leg-to").forEach(i => i.value = "LF");
   document.querySelectorAll(".leg-dist,.leg-gs").forEach(i => i.value = "");
   document.querySelectorAll(".leg-aleas").forEach(i => i.value = "10");
-  $("divTo").value = ""; $("divDist").value = ""; $("divGs").value = "";
+  $("divTo").value = "LF"; $("divDist").value = ""; $("divGs").value = "";
   compute();
 });
 
