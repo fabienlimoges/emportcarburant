@@ -13,15 +13,14 @@
     --seg-taxi:#93a1af; --seg-vol:#1d5fbf; --seg-integ:#e8a13c;
     --seg-div:#8e6fd8; --seg-res:#1f9e93; --seg-marge:#d05c8c;
   }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --bg:#141a21; --card:#1e2630; --ink:#e8eef4; --muted:#9fb0c0;
-      --accent:#5b96e8; --accent-ink:#0d1117; --line:#33404d;
-      --ok-bg:#173722; --ok-ink:#7fd99a; --bad-bg:#3d1a1d; --bad-ink:#f1969b;
-      --input-bg:#161d26; --input-border:#51606f; --result-bg:#20304a;
-      --seg-taxi:#6b7885; --seg-vol:#4c86d8; --seg-integ:#c98a2e;
-      --seg-div:#7e63c4; --seg-res:#1d8b81; --seg-marge:#b74f79;
-    }
+  /* Light is the default; dark only when explicitly chosen via the theme button */
+  :root[data-theme="dark"]{
+    --bg:#141a21; --card:#1e2630; --ink:#e8eef4; --muted:#9fb0c0;
+    --accent:#5b96e8; --accent-ink:#0d1117; --line:#33404d;
+    --ok-bg:#173722; --ok-ink:#7fd99a; --bad-bg:#3d1a1d; --bad-ink:#f1969b;
+    --input-bg:#161d26; --input-border:#51606f; --result-bg:#20304a;
+    --seg-taxi:#6b7885; --seg-vol:#4c86d8; --seg-integ:#c98a2e;
+    --seg-div:#7e63c4; --seg-res:#1d8b81; --seg-marge:#b74f79;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
@@ -127,7 +126,8 @@
 <div class="wrap">
   <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
     <h1>✈️ Emport carburant — Navigation 3 étapes (exercice PPL)</h1>
-    <button id="resetBtn" class="no-print" style="margin-left:auto">↺ Réinitialiser le vol</button>
+    <button id="themeBtn" class="no-print" style="margin-left:auto" title="Basculer clair / sombre">🌙 Sombre</button>
+    <button id="resetBtn" class="no-print">↺ Réinitialiser le vol</button>
   </div>
   <div class="sub" style="font-weight:600;margin-bottom:2px">Référence NCO.OP.125</div>
   <div class="sub">Objectif : garantir l'emport réglementaire au départ de la 3ᵉ étape.
@@ -513,6 +513,19 @@ $("resetBtn").addEventListener("click", async () => {
 
 $("plane").innerHTML = fleet.map(p => `<option>${p.immat}</option>`).join("");
 compute();
+
+// Theme: light by default, dark only if the user chose it (persisted in localStorage)
+function applyTheme(dark) {
+  if (dark) document.documentElement.dataset.theme = "dark";
+  else delete document.documentElement.dataset.theme;
+  $("themeBtn").textContent = dark ? "☀️ Clair" : "🌙 Sombre";
+}
+applyTheme(localStorage.getItem("theme") === "dark");
+$("themeBtn").addEventListener("click", () => {
+  const dark = document.documentElement.dataset.theme !== "dark";
+  localStorage.setItem("theme", dark ? "dark" : "light");
+  applyTheme(dark);
+});
 </script>
 </body>
 </html>
